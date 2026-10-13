@@ -1,32 +1,54 @@
+import re
 from flask import Flask, jsonify, request
-from flask_cors import CORS  # Permite que la página web se comunique con el servidor
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Habilitamos CORS para evitar bloqueos del navegador
+CORS(app)
 
-# Ruta de prueba para verificar que el servidor de Libertademi está activo
-@app.route("/")
-def inicio():
-    return "¡El backend de Libertademi está funcionando correctamente! 🚀"
 
-# Ruta para recibir el registro de nuevos usuarios (Futura Base de Datos)
 @app.route("/api/registro", methods=["POST"])
-def registrar_usuario():
-    datos = request.get_json()
-    
-    nombre = datos.get("nombre")
-    correo = datos.get("correo")
-    password = datos.get("password")
-    
-    # Aquí más adelante conectaremos la base de datos SQLite para guardarlos de forma segura
-    print(f"📥 Nuevo usuario recibido -> Nombre: {nombre}, Correo: {correo}")
-    
-    # Respondemos con éxito al Frontend (script.js)
-    return jsonify({
-        "exito": True,
-        "mensaje": f"¡Bienvenido a Libertademi, {nombre}! Tu registro se ha completado."
-    })
+def registro():
+  datos = request.get_json()
+
+  nombre = datos.get("nombre")
+  correo = datos.get("correo")
+  password = datos.get("password")
+
+  if not nombre or not correo or not password:
+    return (
+        jsonify({"exito": False, "mensaje": "Faltan datos obligatorios."}),
+        400,
+    )
+
+  # Validar seguridad de la contraseña en el backend
+  # Al menos 8 caracteres, 1 minúscula, 1 mayúscula, 1 número y 1 carácter especial
+  patron_password = (
+      r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._])[A-Za-z\d@$!%*?&._]{8,}$"
+  )
+  if not re.match(patron_password, password):
+    return (
+        jsonify({
+            "exito": False,
+            "mensaje": (
+                "La contraseña no cumple con los requisitos de seguridad"
+                " (Mínimo 8 caracteres, mayúscula, minúscula, número y carácter"
+                " especial)."
+            ),
+        }),
+        400,
+    )
+
+  # Aquí puedes guardar el usuario en tu base de datos más adelante
+  print(f"Nuevo usuario registrado con éxito: {nombre} ({correo})")
+
+  return jsonify({
+      "exito": True,
+      "mensaje": (
+          f"¡Registro exitoso, {nombre}! Te hemos enviado un correo de"
+          " confirmación."
+      ),
+  })
+
 
 if __name__ == "__main__":
-    # Arrancamos el servidor en el puerto 5000
-    app.run(debug=True, port=5000)
+  app.run(debug=True)
