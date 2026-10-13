@@ -21,7 +21,6 @@ def registro():
     )
 
   # Validar seguridad de la contraseña en el backend
-  # Al menos 8 caracteres, 1 minúscula, 1 mayúscula, 1 número y 1 carácter especial
   patron_password = (
       r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._])[A-Za-z\d@$!%*?&._]{8,}$"
   )
